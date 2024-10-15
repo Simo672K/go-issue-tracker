@@ -1,22 +1,24 @@
 package cmd
 
 import (
-	"context"
-	"fmt"
 	"log"
 	"net/http"
-
-	"github.com/Simo672K/issue-tracker/api/routes"
 )
 
-func Run() {
-	mux := http.NewServeMux()
-	ctx := context.Background()
+type Application struct {
+	Config Config
+}
 
-	fmt.Println("Running app on port :3000")
-	if err := routes.AppRoutes(&ctx, mux); err != nil {
-		log.Fatalf("An error accured: %+v", err)
+type Config struct {
+	Addr string
+}
+
+func (app *Application) Run(mux *http.ServeMux) {
+
+	server := http.Server{
+		Addr:    app.Config.Addr,
+		Handler: mux,
 	}
-
-	http.ListenAndServe(":3000", mux)
+	log.Println("Application runnning on", app.Config.Addr)
+	server.ListenAndServe()
 }

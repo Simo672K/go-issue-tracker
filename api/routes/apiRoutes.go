@@ -5,7 +5,10 @@ import (
 	"net/http"
 )
 
-func AppRoutes(ctx *context.Context, r *http.ServeMux) error {
+func MuxRouter(ctx *context.Context) (*http.ServeMux, error) {
+	mux := http.NewServeMux()
 
-	return nil
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("Hello\n")) })
+
+	return mux, nil
 }
