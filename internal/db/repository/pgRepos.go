@@ -3,20 +3,39 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"log"
+	"time"
 
 	"github.com/Simo672K/issue-tracker/internal/db/model"
+	_ "github.com/lib/pq"
 )
 
 type PostgresUserRepo struct {
 	DB *sql.DB
 }
 
-func (pur *PostgresUserRepo) Find(ctx context.Context, id string) (*model.User, error) {
-	return nil, nil
+// find user based on it's email
+func (pur *PostgresUserRepo) Find(ctx context.Context, email string) (*model.User, error) {
+	var user model.User
+
+	sqlQuery := "SELECT * FROM user WHERE email=$1"
+	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*200)
+	defer cancel()
+
+	if err := pur.DB.QueryRowContext(
+		ctx,
+		sqlQuery,
+		email).Scan(
+		&user.Email,
+		&user.HashedPassword,
+		&user.Name,
+		&user.UserID); err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }
 
-func (pur *PostgresUserRepo) FindAll(ctx context.Context, fieldName, value string) ([]*model.User, error) {
+func (pur *PostgresUserRepo) FindAll(ctx context.Context) ([]*model.User, error) {
 	return nil, nil
 }
 
@@ -37,17 +56,4 @@ func NewUserRepository(db *sql.DB) UserRepository {
 	return &PostgresUserRepo{
 		DB: db,
 	}
-}
-
-func Test() {
-	// user := model.User{}
-	connStr := "postgres://user:password@localhost/dbname?sslmode=disable"
-	db, err := sql.Open("postgres", connStr)
-	ctx := context.Background()
-	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
-	}
-
-	userRepo := NewUserRepository(db)
-	userRepo.Find(ctx, "id")
 }

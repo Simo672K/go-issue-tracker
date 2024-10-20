@@ -5,10 +5,8 @@ import (
 	"net/http"
 )
 
-func MuxRouter(ctx *context.Context) (*http.ServeMux, error) {
-	mux := http.NewServeMux()
+func MuxRouter(ctx context.Context, mux *http.ServeMux) error {
+	mux.HandleFunc("/checkhealth", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("{\"message\":\"Hello world\"}")) })
 
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("Hello\n")) })
-
-	return mux, nil
+	return nil
 }
