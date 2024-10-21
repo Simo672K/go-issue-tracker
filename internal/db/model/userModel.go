@@ -5,9 +5,9 @@ import (
 )
 
 type User struct {
-	UserID         string
-	Name           string
-	Email          string
-	HashedPassword string
-	Created        *time.Time
+	UserID         string     `json:"userId"`
+	Name           string     `json:"name"`
+	Email          string     `json:"email"`
+	HashedPassword string     `json:"password"`
+	Created        *time.Time `json:"created"`
 }

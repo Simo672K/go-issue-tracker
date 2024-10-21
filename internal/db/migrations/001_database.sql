@@ -11,7 +11,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TYPE i_status AS ENUM ('IN_PROGRESS', 'OPEN', 'CLOSED');
 
 -- Create the user table with UUID primary key
-CREATE TABLE user (
+CREATE TABLE "user" (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
   name VARCHAR(255) NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE profile (
   user_id UUID UNIQUE NOT NULL,
   username VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE
 );
 
 -- Create the project table

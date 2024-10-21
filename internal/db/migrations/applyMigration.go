@@ -18,7 +18,7 @@ func MigrateDB() {
 		return
 	}
 	wd = wd + "/internal/db/migrations/"
-	connStr := "postgres://postgres:123456@localhost:5432/issue_tracker/"
+	connStr := "postgres://postgres:123456@localhost:5432/issue_tracker"
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal("Error connecting to the database: ", err)
@@ -37,7 +37,7 @@ func MigrateDB() {
 		if command == "" {
 			continue // Skip empty commands
 		}
-		_, err := db.Exec(command)
+		_, err := db.Exec(command + ";")
 		if err != nil {
 			log.Fatalf("Error executing command: %s, error: %v", command, err)
 		}

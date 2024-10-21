@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Simo672K/issue-tracker/internal/db/model"
-	_ "github.com/lib/pq"
 )
 
 type PostgresUserRepo struct {
@@ -40,6 +39,12 @@ func (pur *PostgresUserRepo) FindAll(ctx context.Context) ([]*model.User, error)
 }
 
 func (pur *PostgresUserRepo) Create(ctx context.Context, user *model.User) error {
+	sqlQuery := "INSERT INTO user (name, email, hashed_password) values ($1, $2, $3)"
+	_, err := pur.DB.ExecContext(ctx, sqlQuery, user.Name, user.Email, user.HashedPassword)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -52,7 +57,7 @@ func (pur *PostgresUserRepo) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func NewUserRepository(db *sql.DB) UserRepository {
+func NewPGUserRepository(db *sql.DB) UserRepository {
 	return &PostgresUserRepo{
 		DB: db,
 	}
