@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"log"
 	"time"
 
 	"github.com/Simo672K/issue-tracker/internal/db"
@@ -31,9 +32,13 @@ func CreateUser(user *model.User) error {
 
 	// updates the user ported password to the hashed version
 	user.HashedPassword = string(hpasswd)
-
 	ur := repository.NewPGUserRepository(db)
-	ur.Create(ctx, user)
+
+	if err := ur.Create(ctx, user); err != nil {
+		log.Fatal("Failed to create new user:", err)
+		return err
+	}
+
 	return nil
 }
 

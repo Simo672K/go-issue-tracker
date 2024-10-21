@@ -7,7 +7,7 @@ import (
 	"github.com/lpernett/godotenv"
 )
 
-var connStr *string
+var connStr string
 
 func init() {
 	err := godotenv.Load()
@@ -15,9 +15,9 @@ func init() {
 		log.Fatal("Error accured:", err)
 		return
 	}
-	*connStr = os.Getenv("DATABASE")
+	connStr = os.Getenv("DATABASE")
 }
 
 func GetDBConnStr() string {
-	return *connStr
+	return connStr
 }
