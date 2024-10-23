@@ -18,4 +18,6 @@ func CreateProfileJob(ctx context.Context, errChan chan error, db *sql.DB, userI
 		errChan <- err
 		return
 	}
+
+	errChan <- nil
 }
