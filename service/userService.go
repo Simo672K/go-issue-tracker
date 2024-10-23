@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"database/sql"
 	"log"
 	"time"
 
@@ -19,12 +18,7 @@ func CreateUser(user *model.User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*200)
 	defer cancel()
 
-	connStr := db.GetDBConnStr()
-	db, err := sql.Open("postgres", connStr)
-
-	if err != nil {
-		return err
-	}
+	db := db.GetDBConn()
 
 	// hashes the password to create before creating a new user
 	hpasswd, err := utils.HashPassword(user.HashedPassword)
