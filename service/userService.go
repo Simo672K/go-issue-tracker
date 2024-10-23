@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Simo672K/issue-tracker/internal/db"
+	"github.com/Simo672K/issue-tracker/internal/db/job"
 	"github.com/Simo672K/issue-tracker/internal/db/model"
 	"github.com/Simo672K/issue-tracker/internal/db/repository"
 	"github.com/Simo672K/issue-tracker/utils"
@@ -14,6 +15,7 @@ import (
 )
 
 func CreateUser(user *model.User) error {
+	errChan := make(chan error, 1)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*200)
 	defer cancel()
 
@@ -34,12 +36,20 @@ func CreateUser(user *model.User) error {
 	user.HashedPassword = string(hpasswd)
 	ur := repository.NewPGUserRepository(db)
 
-	if err := ur.Create(ctx, user); err != nil {
+	// creating the user and returning the user id
+	userID, err := ur.Create(ctx, user)
+	if err != nil {
 		log.Fatal("Failed to create new user:", err)
+		return err
+	}
+
+	// creating the profile using profile job go routine
+	go job.CreateProfileJob(ctx, errChan, db, userID)
+
+	if err := <-errChan; err != nil {
+		log.Fatal("Failed to create user profile:", err)
 		return err
 	}
 
 	return nil
 }
-
-func createProfile() {}

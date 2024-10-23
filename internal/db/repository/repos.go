@@ -9,7 +9,11 @@ import (
 type UserRepository interface {
 	Find(ctx context.Context, email string) (*model.User, error)
 	FindAll(ctx context.Context) ([]*model.User, error)
-	Create(ctx context.Context, user *model.User) error
+	Create(ctx context.Context, user *model.User) (string, error)
 	Update(ctx context.Context, user *model.User) error
 	Delete(ctx context.Context, id string) error
+}
+
+type ProfileRepository interface {
+	Create(ctx context.Context, profile *model.Profile) error
 }

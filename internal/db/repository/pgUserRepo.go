@@ -38,14 +38,15 @@ func (pur *PostgresUserRepo) FindAll(ctx context.Context) ([]*model.User, error)
 	return nil, nil
 }
 
-func (pur *PostgresUserRepo) Create(ctx context.Context, user *model.User) error {
-	sqlQuery := "INSERT INTO \"user\" (name, email, hashed_password) values ($1, $2, $3)"
-	_, err := pur.DB.ExecContext(ctx, sqlQuery, user.Name, user.Email, user.HashedPassword)
-	if err != nil {
-		return err
+func (pur *PostgresUserRepo) Create(ctx context.Context, user *model.User) (string, error) {
+	var userId string
+	sqlQuery := "INSERT INTO \"user\" (name, email, hashed_password) values ($1, $2, $3) RETURNING id;"
+
+	if err := pur.DB.QueryRowContext(ctx, sqlQuery, user.Name, user.Email, user.HashedPassword).Scan(&userId); err != nil {
+		return "", err
 	}
 
-	return nil
+	return userId, nil
 }
 
 func (pur *PostgresUserRepo) Update(ctx context.Context, user *model.User) error {

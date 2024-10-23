@@ -11,3 +11,10 @@ type User struct {
 	HashedPassword string     `json:"password"`
 	Created        *time.Time `json:"created"`
 }
+
+type Profile struct {
+	ProfileID string     `json:"profileId"`
+	UserID    string     `json:"userId"`
+	Username  string     `json:"username"`
+	Created   *time.Time `json:"created"`
+}
