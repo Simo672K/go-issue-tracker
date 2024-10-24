@@ -2,23 +2,21 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"time"
 
-	"github.com/Simo672K/issue-tracker/internal/db"
-	"github.com/Simo672K/issue-tracker/internal/db/job"
 	"github.com/Simo672K/issue-tracker/internal/db/model"
 	"github.com/Simo672K/issue-tracker/internal/db/repository"
+	"github.com/Simo672K/issue-tracker/internal/job"
 	"github.com/Simo672K/issue-tracker/utils"
 	_ "github.com/lib/pq"
 )
 
-func CreateUser(user *model.User) error {
+func CreateUser(user *model.User, ur repository.UserRepository, db *sql.DB) error {
 	errChan := make(chan error, 1)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*200)
 	defer cancel()
-
-	db := db.GetDBConn()
 
 	// hashes the password to create before creating a new user
 	hpasswd, err := utils.HashPassword(user.HashedPassword)
@@ -28,7 +26,6 @@ func CreateUser(user *model.User) error {
 
 	// updates the user ported password to the hashed version
 	user.HashedPassword = string(hpasswd)
-	ur := repository.NewPGUserRepository(db)
 
 	// creating the user and returning the user id
 	userID, err := ur.Create(ctx, user)

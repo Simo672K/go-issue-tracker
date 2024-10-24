@@ -27,7 +27,7 @@ func (pur *PostgresUserRepo) Find(ctx context.Context, email string) (*model.Use
 		&user.Email,
 		&user.HashedPassword,
 		&user.Name,
-		&user.UserID); err != nil {
+		&user.Id); err != nil {
 		return nil, err
 	}
 

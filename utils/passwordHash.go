@@ -10,3 +10,12 @@ func HashPassword(rawPassword string) ([]byte, error) {
 
 	return hashedPassword, nil
 }
+
+func IsCredentialValid(hashedPassword, password string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	if err != nil {
+		return false
+	}
+
+	return true
+}
