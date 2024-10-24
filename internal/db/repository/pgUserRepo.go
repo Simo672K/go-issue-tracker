@@ -16,7 +16,7 @@ type PostgresUserRepo struct {
 func (pur *PostgresUserRepo) Find(ctx context.Context, email string) (*model.User, error) {
 	var user model.User
 
-	sqlQuery := "SELECT * FROM user WHERE email=$1"
+	sqlQuery := "SELECT email, hashed_password, name, id  FROM \"user\" WHERE email=$1"
 	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*200)
 	defer cancel()
 

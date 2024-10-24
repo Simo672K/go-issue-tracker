@@ -36,20 +36,30 @@ func AuthSignUpHandler(w http.ResponseWriter, r *http.Request) {
 // TODO : -> pass it to an auth-service -> verify credentials -> return a jwt or invalid credentials code error
 func AuthSignInHandler(w http.ResponseWriter, r *http.Request) {
 	var credentials service.Credentials
+	db := db.GetDBConn()
+	ur := repository.NewPGUserRepository(db)
 	header := w.Header()
 
 	if err := json.NewDecoder(r.Body).Decode(&credentials); err != nil {
 		log.Fatal("An error accured while parsing credentials data", err)
 		return
 	}
-	res, err := json.Marshal(credentials)
-	if err != nil {
-		log.Fatal("An error accured while marshaling credentials", err)
-		return
-	}
 
 	header.Add("Content-Type", "application/json")
-	w.Write(res)
+	tokens, status := service.SignInService(credentials, ur)
+
+	switch status {
+	case http.StatusOK:
+		tokens, err := json.Marshal(*tokens)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Write(tokens)
+	default:
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 }
 
 // TODO : change password - update the current password to a new one
