@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/Simo672K/issue-tracker/internal/db/model"
 	"github.com/Simo672K/issue-tracker/internal/db/repository"
 	"github.com/Simo672K/issue-tracker/service"
+	"github.com/Simo672K/issue-tracker/utils"
 )
 
 // signup and registration handler
@@ -40,22 +42,29 @@ func AuthSignInHandler(w http.ResponseWriter, r *http.Request) {
 	ur := repository.NewPGUserRepository(db)
 	header := w.Header()
 
+	// Decoding request body and binding it to credentials
 	if err := json.NewDecoder(r.Body).Decode(&credentials); err != nil {
 		log.Fatal("An error accured while parsing credentials data", err)
 		return
 	}
 
+	// setting up headers
 	header.Add("Content-Type", "application/json")
 	tokens, status := service.SignInService(credentials, ur)
 
 	switch status {
 	case http.StatusOK:
-		tokens, err := json.Marshal(*tokens)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		w.Write(tokens)
+		// tokens, err := json.Marshal(*tokens)
+
+		// if err != nil {
+		// 	w.WriteHeader(http.StatusInternalServerError)
+		// 	return
+		// }
+		cookieVal := fmt.Sprintf("AccessToken:%s,RefreshToken:%s", tokens.AccessToken, tokens.RefreshToken)
+		//  Setting tokens as an httponly cookie
+		utils.SetTokenCookie(w, string(cookieVal))
+		http.Redirect(w, r, "/checkhealth", http.StatusOK)
+
 	default:
 		w.WriteHeader(http.StatusUnauthorized)
 		return
