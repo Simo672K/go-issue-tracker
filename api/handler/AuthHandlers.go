@@ -37,10 +37,10 @@ func AuthSignUpHandler(w http.ResponseWriter, r *http.Request) {
 // TODO : signin handler - should accept credentials
 // TODO : -> pass it to an auth-service -> verify credentials -> return a jwt or invalid credentials code error
 func AuthSignInHandler(w http.ResponseWriter, r *http.Request) {
+	resMessage := make(map[string]string)
 	var credentials service.Credentials
 	db := db.GetDBConn()
 	ur := repository.NewPGUserRepository(db)
-	header := w.Header()
 
 	// Decoding request body and binding it to credentials
 	if err := json.NewDecoder(r.Body).Decode(&credentials); err != nil {
@@ -48,31 +48,40 @@ func AuthSignInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// setting up headers
-	header.Add("Content-Type", "application/json")
+	// setting up tokens
 	tokens, status := service.SignInService(credentials, ur)
 
 	switch status {
 	case http.StatusOK:
-		// tokens, err := json.Marshal(*tokens)
 
-		// if err != nil {
-		// 	w.WriteHeader(http.StatusInternalServerError)
-		// 	return
-		// }
-		cookieVal := fmt.Sprintf("AccessToken:%s,RefreshToken:%s", tokens.AccessToken, tokens.RefreshToken)
+		cookieVal := fmt.Sprintf("access_token:%s,refresh_token:%s", tokens.AccessToken, tokens.RefreshToken)
+
 		//  Setting tokens as an httponly cookie
 		utils.SetTokenCookie(w, string(cookieVal))
-		http.Redirect(w, r, "/checkhealth", http.StatusOK)
-
+		resMessage["message"] = "Signed in successfully!"
+		jsonMsg, _ := json.Marshal(resMessage)
+		w.Write(jsonMsg)
 	default:
 		w.WriteHeader(http.StatusUnauthorized)
-		return
+		resMessage["error"] = "Email or password incorrect"
+		jsonMsg, _ := json.Marshal(resMessage)
+		w.Write(jsonMsg)
 	}
 }
 
 // TODO : change password - update the current password to a new one
-func AuthChangePassword() {}
+func AuthChangePassword(w http.ResponseWriter, r *http.Request) {}
 
 // TODO : reset password - when password forgoted
-func AuthResetPassword() {}
+func AuthResetPassword(w http.ResponseWriter, r *http.Request) {}
+
+func AuthTest(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("jwt_tokens")
+	if err != nil {
+		w.Write([]byte("wrong"))
+		http.Error(w, "something went wrong", http.StatusUnauthorized)
+		return
+	}
+
+	fmt.Println(cookie.Value)
+}

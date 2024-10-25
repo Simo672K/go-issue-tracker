@@ -7,7 +7,7 @@ import (
 
 func SetTokenCookie(w http.ResponseWriter, value string) {
 	cookie := &http.Cookie{
-		Name:     "jwt_token",
+		Name:     "jwt_tokens",
 		Value:    value,
 		Expires:  time.Now().Add(time.Hour * 24 * 15),
 		HttpOnly: true,
