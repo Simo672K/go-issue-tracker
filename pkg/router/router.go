@@ -25,6 +25,7 @@ func NewRouter(ctx context.Context, mux *http.ServeMux) *Router {
 // TODO: commonly khowns as middlwares and controllers
 // Handle method for flexible HTTP method handling with middleware chaining
 func (r *Router) Handle(method, path string, controller Controller, middlewares ...Middleware) {
+	var pipedHandler http.Handler
 	// Base handler for the controller
 	handler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// Check if the request method matches
@@ -36,8 +37,11 @@ func (r *Router) Handle(method, path string, controller Controller, middlewares 
 		controller(w, req)
 	})
 
-	// Apply middlewares to the handler
-	pipedHandler := applyMiddlewaresPipe(r.Ctx, handler, middlewares...)
+	pipedHandler = handler
+	// Apply middlewares to the handler if there is any middleware
+	if len(middlewares) > 0 {
+		pipedHandler = applyMiddlewaresPipe(r.Ctx, handler, middlewares...)
+	}
 	r.Mux.Handle(path, pipedHandler)
 }
 
