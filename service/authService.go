@@ -26,7 +26,10 @@ func SignInService(credentials Credentials, ur repository.UserRepository) (*util
 
 	// checks if user's credentials are legit
 	if utils.IsCredentialValid(user.HashedPassword, credentials.Password) {
+		id := utils.StrUniqueId()
+
 		payload := jwt.MapClaims{
+			"uid":   id,
 			"email": user.Email,
 			"sub":   user.Id,
 			"iat":   time.Now().Unix(),
@@ -34,7 +37,7 @@ func SignInService(credentials Credentials, ur repository.UserRepository) (*util
 		}
 
 		// Generating jwt tokens
-		token, err := utils.GenerateJwtTokens(payload)
+		token, err := utils.GenerateJwtTokens(payload, id)
 
 		if err != nil {
 			return nil, http.StatusUnauthorized

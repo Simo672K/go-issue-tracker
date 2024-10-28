@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
+
+	"github.com/Simo672K/issue-tracker/utils"
 )
 
 func AuthMiddleware(ctx context.Context, handler http.Handler) http.Handler {
@@ -14,7 +17,14 @@ func AuthMiddleware(ctx context.Context, handler http.Handler) http.Handler {
 			http.Error(w, "something went wrong", http.StatusUnauthorized)
 			return
 		}
-		fmt.Println(cookie)
+
+		// extracting tokens from cookie
+		tokens := strings.Split(cookie.Value, ",")
+		accessToken := strings.Replace(tokens[0], "access_token:", "", 1)
+		// refreshToken := strings.Replace(tokens[1], "refresh_token:", "", 1)
+
+		isValid := utils.IsCredentialValid(accessToken, "ACCESS_TOKEN")
+		fmt.Println(isValid)
 		handler.ServeHTTP(w, r)
 	})
 }
