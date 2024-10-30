@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"fmt"
 	"os"
 	"time"
 
+	"github.com/Simo672K/issue-tracker/internal/db/model"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -11,6 +13,11 @@ type JwtToken struct {
 	AccessToken  string
 	RefreshToken string
 }
+
+const (
+	ACCESS_TOKEN  = "ACCESS_TOKEN"
+	REFRESH_TOKEN = "REFRESH_TOKEN"
+)
 
 var (
 	accessSecret  string
@@ -60,21 +67,55 @@ func SignJwtToken(payload jwt.MapClaims, secret []byte) (string, error) {
 	return stringToken, nil
 }
 
-func IsTokenValid(tokens JwtToken, tokenType string) bool {
+func tokenParser(token, tokenType string) (*jwt.Token, error) {
 	var secret string
 
 	switch tokenType {
-	case "ACCESS_TOKEN":
+	case ACCESS_TOKEN:
 		secret = accessSecret
-	case "REFRESH_TOKEN":
+	case REFRESH_TOKEN:
 		secret = refreshSecret
 	}
 
-	jwtToken, err := jwt.Parse(tokens.AccessToken, func(token *jwt.Token) (interface{}, error) {
-		return []byte(os.Getenv(secret)), nil
+	jwtToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		return []byte(secret), nil
 	})
+	// if err != nil {
+	// 	return nil
+	// }
+	return jwtToken, err
+}
+
+func IsTokenValid(token string, tokenType string) (bool, error) {
+	jwtToken, err := tokenParser(token, tokenType)
 	if err != nil {
-		return false
+		return jwtToken.Valid, err
 	}
-	return jwtToken.Valid
+	return jwtToken.Valid, nil
+}
+
+func ExtractTokenPayload(token string, tokenType string) (*jwt.MapClaims, error) {
+	jwtToken, err := tokenParser(token, tokenType)
+	payload := jwtToken.Claims.(jwt.MapClaims)
+
+	if err != nil {
+		return &payload, fmt.Errorf("failed to extract token payload: %s", err)
+	}
+	return &payload, nil
+}
+
+func TokenPayloadConsruct(payload jwt.MapClaims, duration time.Duration) jwt.MapClaims {
+	payload["ia"] = time.Now().Unix()
+	payload["exp"] = time.Now().Add(duration).Unix()
+	return payload
+}
+
+func AccessTokenPayloadConstructor(id string, user *model.User) jwt.MapClaims {
+	payload := jwt.MapClaims{
+		"uid":   id,
+		"email": user.Email,
+		"sub":   user.Id,
+	}
+	payload = TokenPayloadConsruct(payload, time.Minute*10)
+	return payload
 }

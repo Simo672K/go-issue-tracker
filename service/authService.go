@@ -3,11 +3,9 @@ package service
 import (
 	"context"
 	"net/http"
-	"time"
 
 	"github.com/Simo672K/issue-tracker/internal/db/repository"
 	"github.com/Simo672K/issue-tracker/utils"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type Credentials struct {
@@ -28,13 +26,7 @@ func SignInService(credentials Credentials, ur repository.UserRepository) (*util
 	if utils.IsCredentialValid(user.HashedPassword, credentials.Password) {
 		id := utils.StrUniqueId()
 
-		payload := jwt.MapClaims{
-			"uid":   id,
-			"email": user.Email,
-			"sub":   user.Id,
-			"iat":   time.Now().Unix(),
-			"exp":   time.Now().Add(time.Minute * 10).Unix(),
-		}
+		payload := utils.AccessTokenPayloadConstructor(id, user)
 
 		// Generating jwt tokens
 		token, err := utils.GenerateJwtTokens(payload, id)
