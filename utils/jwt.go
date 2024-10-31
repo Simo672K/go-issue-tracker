@@ -88,6 +88,7 @@ func tokenParser(token, tokenType string) (*jwt.Token, error) {
 
 func IsTokenValid(token string, tokenType string) (bool, error) {
 	jwtToken, err := tokenParser(token, tokenType)
+	// fmt.Println(jwtToken)
 	if err != nil {
 		return jwtToken.Valid, err
 	}
@@ -105,7 +106,7 @@ func ExtractTokenPayload(token string, tokenType string) (*jwt.MapClaims, error)
 }
 
 func TokenPayloadConsruct(payload jwt.MapClaims, duration time.Duration) jwt.MapClaims {
-	payload["ia"] = time.Now().Unix()
+	payload["iat"] = time.Now().Unix()
 	payload["exp"] = time.Now().Add(duration).Unix()
 	return payload
 }
