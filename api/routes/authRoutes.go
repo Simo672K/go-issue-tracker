@@ -14,5 +14,4 @@ func AuthRoutes(ar *router.Router) {
 	ar.POST("/api/v1/auth/reset-password", handler.AuthSignUpHandler)
 
 	ar.GET("/api/v1/test-auth", handler.AuthTest, middleware.AuthMiddleware)
-	ar.GET("/api/v1/verify-email", handler.AuthSignUpHandler)
 }

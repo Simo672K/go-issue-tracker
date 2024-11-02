@@ -76,10 +76,5 @@ func AuthChangePassword(w http.ResponseWriter, r *http.Request) {}
 func AuthResetPassword(w http.ResponseWriter, r *http.Request) {}
 
 func AuthTest(w http.ResponseWriter, r *http.Request) {
-	// if err != nil {
-	// 	w.Write([]byte("wrong"))
-	// 	http.Error(w, "something went wrong", http.StatusUnauthorized)
-	// 	return
-	// }
 	w.Write([]byte("OK"))
 }

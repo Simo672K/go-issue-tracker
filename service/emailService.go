@@ -28,6 +28,11 @@ type Email struct {
 	addr    string
 }
 
+type EmailContent struct {
+	Subject string
+	Content string
+}
+
 var (
 	SMTPHost     string
 	SMTPPort     string
@@ -50,11 +55,11 @@ func LoadSMTPConfig() *SendgridSMTP {
 		conf: EmailServConfig{}}
 }
 
-func (smtpc *SendgridSMTP) Init() *EmailServConfig {
-	smtpc.conf.host = SMTPHost
-	smtpc.conf.port = SMTPPort
-	smtpc.conf.password = SMTPPassword
-	smtpc.conf.user = SMTPUsername
+func (smtpc *SendgridSMTP) Init(host, port, user, password string) *EmailServConfig {
+	smtpc.conf.host = host
+	smtpc.conf.port = port
+	smtpc.conf.user = user
+	smtpc.conf.password = password
 	return &smtpc.conf
 }
 
@@ -79,13 +84,29 @@ func (e *Email) Send() error {
 	return nil
 }
 
-func EmailService() error {
-	if err := LoadSMTPConfig().Init().New(
-		"<sender>",
-		[]string{"<reciever>"},
-		"test email",
-		"test email content").Send(); err != nil {
+func EmailService(recievers []string, content *EmailContent) error {
+	if err := LoadSMTPConfig().Init(
+		SMTPHost,
+		SMTPPort,
+		SMTPUsername,
+		SMTPPassword,
+	).New(
+		"<sender-email>",
+		recievers,
+		content.Subject,
+		content.Content).Send(); err != nil {
 		return err
 	}
 	return nil
+}
+
+func SendVerificationEmail() {
+	vid := UserEmailVerificationMockService()
+	content := fmt.Sprintf("Please verify your account, this is your verification link: http://localhost:3000/api/v1/verify-email/%s", vid)
+	c := &EmailContent{
+		Subject: "Verify your email",
+		Content: content,
+	}
+
+	EmailService([]string{"<reciever-email>"}, c)
 }
