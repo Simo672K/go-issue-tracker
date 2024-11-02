@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Simo672K/issue-tracker/pkg/router"
+	"github.com/Simo672K/issue-tracker/service"
 )
 
 /**
@@ -24,5 +25,12 @@ func MuxRouter(ctx context.Context, mux *http.ServeMux) error {
 		w.Write([]byte("OK"))
 	})
 
+	router.GET("/api/v1/email-test", func(w http.ResponseWriter, r *http.Request) {
+		if err := service.EmailService(); err != nil {
+			http.Error(w, "Failed to send email : "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write([]byte("Email sended successfully!"))
+	})
 	return nil
 }

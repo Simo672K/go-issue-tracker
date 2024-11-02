@@ -15,5 +15,4 @@ func AuthRoutes(ar *router.Router) {
 
 	ar.GET("/api/v1/test-auth", handler.AuthTest, middleware.AuthMiddleware)
 	ar.GET("/api/v1/verify-email", handler.AuthSignUpHandler)
-
 }
