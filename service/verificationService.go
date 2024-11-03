@@ -38,10 +38,3 @@ func ValidateVerification(verifId string) error {
 	fmt.Println(VerifiedUsers)
 	return nil
 }
-
-func UserEmailVerificationMockService() string {
-	userID := utils.StrUniqueId()
-	verifId := CreateVerification(userID)
-
-	return verifId
-}

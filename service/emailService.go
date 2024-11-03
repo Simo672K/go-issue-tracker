@@ -5,6 +5,7 @@ import (
 	"net/smtp"
 	"os"
 
+	"github.com/Simo672K/issue-tracker/utils"
 	"github.com/lpernett/godotenv"
 )
 
@@ -100,8 +101,15 @@ func EmailService(recievers []string, content *EmailContent) error {
 	return nil
 }
 
+func NewMockUserEmailVerification() string {
+	userID := utils.StrUniqueId()
+	verifId := CreateVerification(userID)
+
+	return verifId
+}
+
 func SendVerificationEmail() {
-	vid := UserEmailVerificationMockService()
+	vid := NewMockUserEmailVerification()
 	content := fmt.Sprintf("Please verify your account, this is your verification link: http://localhost:3000/api/v1/verify-email/%s", vid)
 	c := &EmailContent{
 		Subject: "Verify your email",

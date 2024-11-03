@@ -6,6 +6,5 @@ import (
 )
 
 func UserRoutes(ur *router.Router) {
-	ur.GET("/api/v1/verify-email/{verificationId}", handler.VerifyUserEmail)
-	ur.GET("/api/v1/verify-email/create", handler.NewVerificationHandler)
+	ur.GET("/api/v1/verify-email/{userId}", handler.VerifyUserEmail)
 }
