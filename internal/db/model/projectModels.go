@@ -3,10 +3,10 @@ package model
 import "time"
 
 type Project struct {
-	Id              string
-	ProjectName     string
-	ProjectProgress float32
-	CreatedAt       *time.Time
+	Id              string     `json:"projectId"`
+	ProjectName     string     `json:"projectName"`
+	ProjectProgress float32    `json:"progress"`
+	CreatedAt       *time.Time `json:"createdAt"`
 }
 
 type ProjectOwner struct {

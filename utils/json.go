@@ -27,7 +27,7 @@ func (jm *JsonMessage) ToString() (string, error) {
 	return string(rawMarshaledMsg), nil
 }
 
-func (jm *JsonMessage) ToJsonResponse() ([]byte, error) {
+func (jm *JsonMessage) ToHttpResponse() ([]byte, error) {
 	jsonResp, err := json.Marshal(jm.Body)
 	if err != nil {
 		return nil, err

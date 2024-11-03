@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"log"
 
 	"github.com/Simo672K/issue-tracker/internal/db/model"
 )
@@ -21,19 +20,15 @@ func (ppr *PostgresProjectRepo) FindAll(ctx context.Context, ownerId string) ([]
 	return nil, nil
 }
 
-func (ppr *PostgresProjectRepo) Create(ctx context.Context, project *model.Project, ownerId string) error {
-	sqlQuery := `
-	BEGIN;
-	INSERT INTO project (project_name) values ($1) RETURNING id AS new_project_id;
-	INSERT INTO project_owner (owner_id, project_id) values (new_project_id, $2)
-	COMMIT;
-	`
-	if _, err := ppr.DB.ExecContext(ctx, sqlQuery, project.ProjectName, ownerId); err != nil {
-		log.Fatalf("Failed to create project of owner #%s ", ownerId)
-		return err
+func (ppr *PostgresProjectRepo) Create(ctx context.Context, project *model.Project) (string, error) {
+	var projectId string
+	sqlQuery := `INSERT INTO project (project_name) VALUES ($1) RETURNING id;`
+
+	if err := ppr.DB.QueryRowContext(ctx, sqlQuery, project.ProjectName).Scan(&projectId); err != nil {
+		return "", err
 	}
 
-	return nil
+	return projectId, nil
 }
 
 func (ppr *PostgresProjectRepo) Update(ctx context.Context, project *model.Project) error {

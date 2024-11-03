@@ -23,29 +23,25 @@ func NewRouter(ctx context.Context, mux *http.ServeMux) *Router {
 
 // TODO: create a function that accepts a route and handlers, and pipe thous handlers into each other internaly,
 // TODO: commonly khowns as middlwares and controllers
-// Handle method for flexible HTTP method handling with middleware chaining
 func (r *Router) Handle(method, path string, controller Controller, middlewares ...Middleware) {
 	var pipedHandler http.Handler
-	// Base handler for the controller
+
 	handler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		// Check if the request method matches
 		if req.Method != method {
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 			return
 		}
-		// Call the controller if the method matches
+
 		controller(w, req)
 	})
 
 	pipedHandler = handler
-	// Apply middlewares to the handler if there is any middleware
 	if len(middlewares) > 0 {
 		pipedHandler = applyMiddlewaresPipe(r.Ctx, handler, middlewares...)
 	}
 	r.Mux.Handle(path, pipedHandler)
 }
 
-// Specific HTTP method helpers (GET, POST, etc.) for convenience
 func (r *Router) GET(path string, controller Controller, middlewares ...Middleware) {
 	r.Handle("GET", path, controller, middlewares...)
 }
