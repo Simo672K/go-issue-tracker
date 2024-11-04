@@ -2,7 +2,9 @@ package utils
 
 import (
 	"fmt"
+	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/Simo672K/issue-tracker/internal/db/model"
@@ -119,4 +121,12 @@ func AccessTokenPayloadConstructor(id string, user *model.User) jwt.MapClaims {
 	}
 	payload = TokenPayloadConsruct(payload, time.Minute*10)
 	return payload
+}
+
+func GetTokensFromCookie(jwtCookie *http.Cookie) (string, string) {
+	tokens := strings.Split(jwtCookie.Value, ",")
+	accessToken := strings.Replace(tokens[0], "access_token:", "", 1)
+	refreshToken := strings.Replace(tokens[1], "refresh_token:", "", 1)
+
+	return accessToken, refreshToken
 }

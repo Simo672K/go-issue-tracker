@@ -5,6 +5,25 @@ import (
 	"net/http"
 )
 
+type JsonHttpErrorResponse struct {
+	Status  int    `json:"status"`
+	Error   string `json:"error"`
+	Message string `json:"message"`
+}
+
+func HttpError() *JsonHttpErrorResponse {
+	return &JsonHttpErrorResponse{}
+}
+
+func (jher *JsonHttpErrorResponse) SetError(w http.ResponseWriter, status int, err, msg string) []byte {
+	jher.Status = status
+	jher.Error = err
+	jher.Message = msg
+	w.WriteHeader(status)
+	jsonErr, _ := json.Marshal(jher)
+	return jsonErr
+}
+
 type JsonMessage struct {
 	Body map[string]any
 }

@@ -3,29 +3,33 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/Simo672K/issue-tracker/internal/db"
 	"github.com/Simo672K/issue-tracker/internal/db/model"
 	"github.com/Simo672K/issue-tracker/internal/db/repository"
+	"github.com/Simo672K/issue-tracker/service"
 	"github.com/Simo672K/issue-tracker/utils"
 )
 
-func CreateProject(w http.ResponseWriter, r *http.Request) {
-	errMsg := utils.NewJsonMsg()
-	successMsg := utils.NewJsonMsg()
+func CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-type", "application/json")
+	resMsg := utils.NewJsonMsg()
 	profileId := r.URL.Query().Get("profile_id")
 	var project model.Project
 
 	if err := json.NewDecoder(r.Body).Decode(&project); err != nil {
-		errMsg.Add("message", "failed to parse data")
-		errMsg.Add("error", err)
-		strErrMsg, _ := errMsg.ToString()
-
 		log.Fatal("An error accured while parsing json data", err)
-		http.Error(w, strErrMsg, http.StatusInternalServerError)
+		jsonErr := utils.HttpError().
+			SetError(
+				w,
+				http.StatusInternalServerError,
+				err.Error(),
+				"Failed to parse data, try again later.",
+			)
+
+		w.Write(jsonErr)
 		return
 	}
 
@@ -35,29 +39,18 @@ func CreateProject(w http.ResponseWriter, r *http.Request) {
 	projectRepo := repository.NewPGProjectRepository(db)
 	projectOwnerRepo := repository.NewPGProjectOwnerRepository(db)
 
-	projectId, err := projectRepo.Create(ctx, &project)
-	if err != nil {
-		errMsg.Add("message", "failed to create new project")
-		errMsg.Add("error", err)
-		strErrMsg, _ := errMsg.ToString()
-
-		log.Fatal("An error accured while creating project", err)
-		http.Error(w, strErrMsg, http.StatusInternalServerError)
+	if err := service.CreateNewProjectService(
+		ctx,
+		projectRepo,
+		projectOwnerRepo,
+		&project,
+		profileId,
+	); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	fmt.Println(projectId)
-	if err := projectOwnerRepo.Create(ctx, profileId, projectId); err != nil {
-		errMsg.Add("message", "operation failed")
-		errMsg.Add("error", err)
-		strErrMsg, _ := errMsg.ToString()
-
-		log.Fatal("An error accured while creating project", err)
-		http.Error(w, strErrMsg, http.StatusInternalServerError)
-		return
-	}
-
-	successMsg.Add("message", "project created successfully!")
-	successResp, _ := successMsg.ToHttpResponse()
+	resMsg.Add("message", "project created successfully!")
+	successResp, _ := resMsg.ToHttpResponse()
 	w.Write(successResp)
 }

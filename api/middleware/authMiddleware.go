@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Simo672K/issue-tracker/utils"
@@ -14,19 +13,15 @@ import (
 func AuthMiddleware(ctx context.Context, handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-type", "application/json")
-		errMessage := make(map[string]string)
 		cookie, err := r.Cookie("jwt_tokens")
 		if err != nil {
-			errMessage["message"] = "403 - Access denied!"
-			jsonMsg, _ := utils.JsonStringfiedHttpResponse(w, errMessage)
-			http.Error(w, jsonMsg, http.StatusForbidden)
+			jsonErr := utils.HttpError().SetError(w, http.StatusForbidden, "FORBIDDEN", "Forbidden 403, cannot access.")
+			w.Write(jsonErr)
 			return
 		}
 
 		// extracting tokens from cookie
-		tokens := strings.Split(cookie.Value, ",")
-		accessToken := strings.Replace(tokens[0], "access_token:", "", 1)
-		refreshToken := strings.Replace(tokens[1], "refresh_token:", "", 1)
+		accessToken, refreshToken := utils.GetTokensFromCookie(cookie)
 
 		// validating tokens
 		isAccessTokenValid, _ := utils.IsTokenValid(accessToken, utils.ACCESS_TOKEN)
@@ -44,16 +39,27 @@ func AuthMiddleware(ctx context.Context, handler http.Handler) http.Handler {
 			uid := (*refreshTokenPayload)["uid"]
 
 			if err != nil {
-				errMessage["message"] = "An error has accured"
-				jsonMsg, _ := utils.JsonStringfiedHttpResponse(w, errMessage)
-				http.Error(w, jsonMsg, http.StatusUnauthorized)
+				jsonErr := utils.HttpError().
+					SetError(
+						w,
+						http.StatusInternalServerError,
+						"INTERNAL_SERVER_ERROR",
+						"An error has occured, please try later.",
+					)
+
+				w.Write(jsonErr)
 				return
 			}
 
 			if (*refreshTokenPayload)["uid"] != (*accessTokenPayload)["uid"] {
-				errMessage["message"] = "Invalid credentials"
-				jsonMsg, _ := utils.JsonStringfiedHttpResponse(w, errMessage)
-				http.Error(w, jsonMsg, http.StatusUnauthorized)
+				jsonErr := utils.HttpError().
+					SetError(
+						w,
+						http.StatusForbidden,
+						"FORBIDDEN",
+						"Access denied, invalid credentials",
+					)
+				w.Write(jsonErr)
 				return
 			}
 
@@ -75,8 +81,13 @@ func AuthMiddleware(ctx context.Context, handler http.Handler) http.Handler {
 			return
 		}
 
-		errMessage["message"] = "Invalid credentials"
-		jsonMsg, _ := utils.JsonStringfiedHttpResponse(w, errMessage)
-		http.Error(w, jsonMsg, http.StatusUnauthorized)
+		jsonErr := utils.HttpError().
+			SetError(
+				w,
+				http.StatusForbidden,
+				"FORBIDDEN",
+				"Access denied, invalid credentials",
+			)
+		w.Write(jsonErr)
 	})
 }
