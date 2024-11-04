@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Simo672K/issue-tracker/internal/db/model"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -113,11 +112,11 @@ func TokenPayloadConsruct(payload jwt.MapClaims, duration time.Duration) jwt.Map
 	return payload
 }
 
-func AccessTokenPayloadConstructor(id string, user *model.User) jwt.MapClaims {
+func AccessTokenPayloadConstructor(id string, email, profileId string) jwt.MapClaims {
 	payload := jwt.MapClaims{
 		"uid":   id,
-		"email": user.Email,
-		"sub":   user.Id,
+		"email": email,
+		"sub":   profileId,
 	}
 	payload = TokenPayloadConsruct(payload, time.Minute*10)
 	return payload

@@ -16,6 +16,7 @@ type UserRepository interface {
 
 type ProfileRepository interface {
 	Create(ctx context.Context, profile *model.Profile) error
+	FindByUserId(ctx context.Context, userId string) (*model.Profile, error)
 }
 
 type ProjectRepository interface {

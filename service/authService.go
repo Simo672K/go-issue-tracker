@@ -13,7 +13,7 @@ type Credentials struct {
 	Password string `json:"password"`
 }
 
-func SignInService(credentials Credentials, ur repository.UserRepository) (*utils.JwtToken, int) {
+func SignInService(credentials Credentials, ur repository.UserRepository, pr repository.ProfileRepository) (*utils.JwtToken, int) {
 
 	ctx := context.Background()
 	user, err := ur.Find(ctx, credentials.Email)
@@ -22,11 +22,16 @@ func SignInService(credentials Credentials, ur repository.UserRepository) (*util
 		return nil, http.StatusUnauthorized
 	}
 
+	profile, err := pr.FindByUserId(ctx, user.Id)
+	if err != nil {
+		return nil, http.StatusUnauthorized
+	}
+
 	// checks if user's credentials are legit
 	if utils.IsCredentialValid(user.HashedPassword, credentials.Password) {
 		id := utils.StrUniqueId()
 
-		payload := utils.AccessTokenPayloadConstructor(id, user)
+		payload := utils.AccessTokenPayloadConstructor(id, user.Email, profile.Id)
 
 		// Generating jwt tokens
 		token, err := utils.GenerateJwtTokens(payload, id)

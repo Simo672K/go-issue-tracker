@@ -41,7 +41,7 @@ func AuthSignInHandler(w http.ResponseWriter, r *http.Request) {
 	var credentials service.Credentials
 	db := db.GetDBConn()
 	ur := repository.NewPGUserRepository(db)
-
+	pr := repository.NewPGProfileRepo(db)
 	// Decoding request body and binding it to credentials
 	if err := json.NewDecoder(r.Body).Decode(&credentials); err != nil {
 		log.Fatal("An error accured while parsing credentials data", err)
@@ -49,7 +49,7 @@ func AuthSignInHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// setting up tokens
-	tokens, status := service.SignInService(credentials, ur)
+	tokens, status := service.SignInService(credentials, ur, pr)
 
 	switch status {
 	case http.StatusOK:
