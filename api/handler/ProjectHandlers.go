@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -20,11 +19,11 @@ func CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
 	var project model.Project
 
 	if err := json.NewDecoder(r.Body).Decode(&project); err != nil {
-		log.Fatal("An error accured while parsing json data", err)
+		log.Println("An error accured while parsing json data", err)
 		jsonErr := utils.HttpError().
 			SetError(
 				w,
-				http.StatusInternalServerError,
+				http.StatusBadRequest,
 				err.Error(),
 				"Failed to parse data, try again later.",
 			)
@@ -34,7 +33,7 @@ func CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db := db.GetDBConn()
-	ctx := context.Background()
+	ctx := r.Context()
 
 	projectRepo := repository.NewPGProjectRepository(db)
 	projectOwnerRepo := repository.NewPGProjectOwnerRepository(db)
@@ -53,4 +52,8 @@ func CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
 	resMsg.Add("message", "project created successfully!")
 	successResp, _ := resMsg.ToHttpResponse()
 	w.Write(successResp)
+}
+
+func ListAssociatedProjectsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("ok"))
 }
