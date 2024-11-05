@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Simo672K/issue-tracker/internal/db/model"
 	"github.com/Simo672K/issue-tracker/internal/db/repository"
@@ -31,4 +32,15 @@ func CreateNewProjectService(ctx context.Context, pr repository.ProjectRepositor
 		return fmt.Errorf(strErrMsg)
 	}
 	return nil
+}
+
+func ListAssociatedProjectsService(ctx context.Context, pr repository.ProjectRepository, profileId string) ([]model.Project, error) {
+	ctxTimout, cancel := context.WithTimeout(ctx, time.Millisecond*150)
+	defer cancel()
+
+	projects, err := pr.FindAll(ctxTimout, profileId)
+	if err != nil {
+		return nil, err
+	}
+	return projects, nil
 }

@@ -4,10 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/Simo672K/issue-tracker/utils"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 func AuthMiddleware(ctx context.Context, handler http.Handler) http.Handler {
@@ -15,8 +13,7 @@ func AuthMiddleware(ctx context.Context, handler http.Handler) http.Handler {
 		w.Header().Set("Content-type", "application/json")
 		cookie, err := r.Cookie("jwt_tokens")
 		if err != nil {
-			jsonErr := utils.HttpError().SetError(w, http.StatusForbidden, "FORBIDDEN", "Forbidden 403, cannot access.")
-			w.Write(jsonErr)
+			utils.WriteJsonError(w, http.StatusForbidden, "FORBIDDEN", "Forbidden 403, cannot access.")
 			return
 		}
 
@@ -38,16 +35,16 @@ func AuthMiddleware(ctx context.Context, handler http.Handler) http.Handler {
 			return
 		}
 
-		accessTokenPayload, err := utils.ExtractTokenPayload(accessToken, utils.ACCESS_TOKEN)
-		if err != nil {
-			utils.WriteJsonError(
-				w,
-				http.StatusBadRequest,
-				"INTERNAL_SERVER_ERROR",
-				"An error has occured, please try later.",
-			)
-			return
-		}
+		accessTokenPayload, _ := utils.ExtractTokenPayload(accessToken, utils.ACCESS_TOKEN)
+		// if err != nil {
+		// 	utils.WriteJsonError(
+		// 		w,
+		// 		http.StatusBadRequest,
+		// 		"BAD_REQUEST",
+		// 		"An error has occured, please try later.",
+		// 	)
+		// 	return
+		// }
 		ctx := context.WithValue(r.Context(), "profileId", (*accessTokenPayload)["sub"])
 		r = r.WithContext(ctx)
 
@@ -70,17 +67,22 @@ func AuthMiddleware(ctx context.Context, handler http.Handler) http.Handler {
 			}
 
 			// new access token
-			accessPayload := jwt.MapClaims{}
-			accessPayload["uid"] = uid
-			accessPayload["email"] = (*accessTokenPayload)["email"]
-			accessPayload["sub"] = (*accessTokenPayload)["sub"]
-			accessPayload = utils.TokenPayloadConsruct(accessPayload, time.Minute*10)
+			accessPayload := utils.AccessTokenPayloadConstructor(
+				uid.(string),
+				(*accessTokenPayload)["email"].(string),
+				(*accessTokenPayload)["sub"].(string),
+			)
 
 			newTokens, err := utils.GenerateJwtTokens(accessPayload, uid.(string))
 			if err != nil {
-
+				utils.WriteJsonError(
+					w,
+					http.StatusBadRequest,
+					"BAD_REQUEST",
+					"An error occured, try again later",
+				)
+				return
 			}
-
 			newTokens.RefreshToken = refreshToken
 
 			// Setting up new cookie
@@ -88,6 +90,8 @@ func AuthMiddleware(ctx context.Context, handler http.Handler) http.Handler {
 
 			// Overriding the cookie
 			utils.SetTokenCookie(w, cookieVal)
+
+			handler.ServeHTTP(w, r)
 			return
 		}
 

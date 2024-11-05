@@ -16,8 +16,43 @@ func (ppr *PostgresProjectRepo) Find(ctx context.Context, id string) (*model.Pro
 	return nil, nil
 }
 
-func (ppr *PostgresProjectRepo) FindAll(ctx context.Context, ownerId string) ([]*model.Project, error) {
-	return nil, nil
+func (ppr *PostgresProjectRepo) FindAll(ctx context.Context, profileId string) ([]model.Project, error) {
+	var projects []model.Project
+
+	sqlQuery := `
+	SELECT 
+		p.id, 
+		p.project_name, 
+		p.project_progress, 
+		p.created_at
+	FROM project p
+	LEFT JOIN project_owner po ON p.id = po.project_id AND po.owner_id = $1
+	LEFT JOIN project_manager pm ON p.id = pm.project_id AND pm.profile_id = $1
+	LEFT JOIN project_dev pd ON p.id = pd.project_id AND pd.profile_id = $1
+	WHERE po.owner_id IS NOT NULL OR pm.profile_id IS NOT NULL OR pd.profile_id IS NOT NULL;
+	`
+
+	rows, err := ppr.DB.QueryContext(ctx, sqlQuery, profileId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var project model.Project
+
+		if err := rows.Scan(&project.Id, &project.ProjectName, &project.ProjectProgress, &project.CreatedAt); err != nil {
+			return nil, err
+		}
+
+		projects = append(projects, project)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return projects, nil
 }
 
 func (ppr *PostgresProjectRepo) Create(ctx context.Context, project *model.Project) (string, error) {

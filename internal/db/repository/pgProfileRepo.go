@@ -22,11 +22,11 @@ func (ppr *PostgresProfileRepo) Create(ctx context.Context, profile *model.Profi
 }
 
 func (ppr *PostgresProfileRepo) FindByUserId(ctx context.Context, userId string) (*model.Profile, error) {
-	sqlQuery := `SELECT * FROM profile WHERE profile.user_id = '$1'`
+	sqlQuery := `SELECT * FROM profile WHERE user_id = $1`
 	var profile model.Profile
 
-	if err := ppr.DB.QueryRowContext(ctx, sqlQuery, userId).Scan(&profile); err != nil {
-		log.Fatalf("Failed to get user #%s profile", profile.UserID)
+	if err := ppr.DB.QueryRowContext(ctx, sqlQuery, userId).Scan(&profile.Id, &profile.UserID, &profile.Username, &profile.Created); err != nil {
+		log.Fatalf("Failed to get user #%s profile", userId)
 		return nil, err
 	}
 	return &profile, nil

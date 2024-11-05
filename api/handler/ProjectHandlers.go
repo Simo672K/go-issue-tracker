@@ -55,5 +55,24 @@ func CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListAssociatedProjectsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("ok"))
+	response := make(map[string]interface{})
+	pgdb := db.GetDBConn()
+	pr := repository.NewPGProjectRepository(pgdb)
+
+	profileId := r.Context().Value("profileId")
+	projects, err := service.ListAssociatedProjectsService(r.Context(), pr, profileId.(string))
+	if err != nil {
+		utils.WriteJsonError(
+			w,
+			http.StatusBadRequest,
+			err.Error(),
+			"An error has occured internaly, try again later",
+		)
+		return
+	}
+	response["projects"] = projects
+	response["count"] = len(projects)
+
+	resp, err := json.Marshal(response)
+	w.Write(resp)
 }

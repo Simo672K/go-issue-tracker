@@ -37,6 +37,7 @@ func AuthSignUpHandler(w http.ResponseWriter, r *http.Request) {
 // TODO : signin handler - should accept credentials
 // TODO : -> pass it to an auth-service -> verify credentials -> return a jwt or invalid credentials code error
 func AuthSignInHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-type", "application/json")
 	resMessage := make(map[string]string)
 	var credentials service.Credentials
 	db := db.GetDBConn()

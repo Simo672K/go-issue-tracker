@@ -15,6 +15,10 @@ type JwtToken struct {
 	RefreshToken string
 }
 
+type Token struct {
+	payload jwt.MapClaims
+}
+
 const (
 	ACCESS_TOKEN  = "ACCESS_TOKEN"
 	REFRESH_TOKEN = "REFRESH_TOKEN"
@@ -128,4 +132,19 @@ func GetTokensFromCookie(jwtCookie *http.Cookie) (string, string) {
 	refreshToken := strings.Replace(tokens[1], "refresh_token:", "", 1)
 
 	return accessToken, refreshToken
+}
+
+func NewToken() *Token {
+	return &Token{
+		payload: jwt.MapClaims{},
+	}
+}
+func (t *Token) Add(key string, value interface{}) {
+	t.payload[key] = value
+}
+
+func (t *Token) Construct(duration time.Duration) jwt.MapClaims {
+	t.payload = TokenPayloadConsruct(t.payload, duration)
+
+	return t.payload
 }

@@ -21,7 +21,7 @@ type ProfileRepository interface {
 
 type ProjectRepository interface {
 	Find(ctx context.Context, id string) (*model.Project, error)
-	FindAll(ctx context.Context, ownerId string) ([]*model.Project, error)
+	FindAll(ctx context.Context, profileId string) ([]model.Project, error)
 	Create(ctx context.Context, project *model.Project) (string, error)
 	Update(ctx context.Context, project *model.Project) error
 	Delete(ctx context.Context, id string) error
