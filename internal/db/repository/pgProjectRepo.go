@@ -13,7 +13,16 @@ type PostgresProjectRepo struct {
 
 // find user based on it's email
 func (ppr *PostgresProjectRepo) Find(ctx context.Context, id string) (*model.Project, error) {
-	return nil, nil
+	var project model.Project
+
+	sqlQuery := `SELECT * FROM project WHERE id=$1`
+
+	if err := ppr.DB.QueryRowContext(ctx, sqlQuery, id).
+		Scan(&project.Id, &project.ProjectName, &project.ProjectProgress, &project.CreatedAt); err != nil {
+		return nil, err
+	}
+
+	return &project, nil
 }
 
 func (ppr *PostgresProjectRepo) FindAll(ctx context.Context, profileId string) ([]model.Project, error) {

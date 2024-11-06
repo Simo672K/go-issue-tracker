@@ -9,7 +9,7 @@ import (
 func ProjectRoutes(pr *router.Router) {
 	pr.GET("/api/v1/project/list", handler.ListAssociatedProjectsHandler, middleware.AuthMiddleware)
 	pr.POST("/api/v1/project/new", handler.CreateProjectHandler, middleware.AuthMiddleware)
-	pr.GET("/api/v1/project/{projectId}", handler.AuthSignUpHandler, middleware.AuthMiddleware)
+	pr.GET("/api/v1/project/{projectId}", handler.ProjectInfoHandler, middleware.AuthMiddleware)
 	pr.GET("/api/v1/project/{projectId}/status", handler.AuthSignUpHandler, middleware.AuthMiddleware)
 	pr.GET("/api/v1/project/{projectId}/delete", handler.AuthSignUpHandler, middleware.AuthMiddleware)
 

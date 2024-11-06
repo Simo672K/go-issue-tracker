@@ -30,7 +30,7 @@ type JsonMessage struct {
 
 func NewJsonMsg() *JsonMessage {
 	return &JsonMessage{
-		Body: make(map[string]any),
+		Body: make(map[string]interface{}),
 	}
 }
 
@@ -46,7 +46,7 @@ func (jm *JsonMessage) ToString() (string, error) {
 	return string(rawMarshaledMsg), nil
 }
 
-func (jm *JsonMessage) ToHttpResponse() ([]byte, error) {
+func (jm *JsonMessage) ToJson() ([]byte, error) {
 	jsonResp, err := json.Marshal(jm.Body)
 	if err != nil {
 		return nil, err

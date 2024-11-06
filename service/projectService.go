@@ -44,3 +44,14 @@ func ListAssociatedProjectsService(ctx context.Context, pr repository.ProjectRep
 	}
 	return projects, nil
 }
+
+func GetProjectInfoService(ctx context.Context, pr repository.ProjectRepository, projectId string) (*model.Project, error) {
+	ctxTimeout, cancel := context.WithTimeout(ctx, time.Millisecond*150)
+	defer cancel()
+
+	project, err := pr.Find(ctxTimeout, projectId)
+	if err != nil {
+		return nil, err
+	}
+	return project, nil
+}

@@ -50,12 +50,11 @@ func CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resMsg.Add("message", "project created successfully!")
-	successResp, _ := resMsg.ToHttpResponse()
+	successResp, _ := resMsg.ToJson()
 	w.Write(successResp)
 }
 
 func ListAssociatedProjectsHandler(w http.ResponseWriter, r *http.Request) {
-	response := make(map[string]interface{})
 	pgdb := db.GetDBConn()
 	pr := repository.NewPGProjectRepository(pgdb)
 
@@ -70,9 +69,53 @@ func ListAssociatedProjectsHandler(w http.ResponseWriter, r *http.Request) {
 		)
 		return
 	}
-	response["projects"] = projects
-	response["count"] = len(projects)
+	projectsList := utils.NewJsonMsg()
+	projectsList.Add("projects", projects)
+	projectsList.Add("count", len(projects))
 
-	resp, err := json.Marshal(response)
-	w.Write(resp)
+	jsonResp, err := projectsList.ToJson()
+	if err != nil {
+		log.Println(err)
+		utils.WriteJsonError(
+			w,
+			http.StatusBadRequest,
+			err.Error(),
+			"An error has occured, try again later.",
+		)
+	}
+
+	w.Write(jsonResp)
+}
+
+func ProjectInfoHandler(w http.ResponseWriter, r *http.Request) {
+	projectId := r.PathValue("projectId")
+	w.Header().Add("Content-type", "application/json")
+	resMsg := utils.NewJsonMsg()
+
+	db := db.GetDBConn()
+	projectRepo := repository.NewPGProjectRepository(db)
+	project, err := service.GetProjectInfoService(r.Context(), projectRepo, projectId)
+	if err != nil {
+		log.Println(err)
+		utils.WriteJsonError(
+			w,
+			http.StatusBadRequest,
+			err.Error(),
+			"An error has occured internaly, try again later",
+		)
+		return
+	}
+	resMsg.Add("data", project)
+	jsonMsg, err := resMsg.ToJson()
+	if err != nil {
+		log.Println(err)
+		utils.WriteJsonError(
+			w,
+			http.StatusBadRequest,
+			err.Error(),
+			"An error has occured internaly, try again later",
+		)
+	}
+
+	w.Write(jsonMsg)
 }
