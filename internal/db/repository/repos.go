@@ -32,4 +32,5 @@ type ProjectOwnerRepository interface {
 	// Find(ctx context.Context, id string) (*model.ProjectOwner, error)
 	// Update(ctx context.Context, owner *model.Project) error
 	// Delete(ctx context.Context, id string) error
+	IsProjectOwner(ctx context.Context, profileId, projectId string) (bool, error)
 }

@@ -87,7 +87,7 @@ func ListAssociatedProjectsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResp)
 }
 
-func ProjectInfoHandler(w http.ResponseWriter, r *http.Request) {
+func GetProjectInfoHandler(w http.ResponseWriter, r *http.Request) {
 	projectId := r.PathValue("projectId")
 	w.Header().Add("Content-type", "application/json")
 	resMsg := utils.NewJsonMsg()
@@ -118,4 +118,8 @@ func ProjectInfoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(jsonMsg)
+}
+
+func DeleteProjectHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("OK"))
 }

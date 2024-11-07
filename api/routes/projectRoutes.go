@@ -3,15 +3,16 @@ package routes
 import (
 	"github.com/Simo672K/issue-tracker/api/handler"
 	"github.com/Simo672K/issue-tracker/api/middleware"
+	"github.com/Simo672K/issue-tracker/internal/auth"
 	"github.com/Simo672K/issue-tracker/pkg/router"
 )
 
 func ProjectRoutes(pr *router.Router) {
 	pr.GET("/api/v1/project/list", handler.ListAssociatedProjectsHandler, middleware.AuthMiddleware)
 	pr.POST("/api/v1/project/new", handler.CreateProjectHandler, middleware.AuthMiddleware)
-	pr.GET("/api/v1/project/{projectId}", handler.ProjectInfoHandler, middleware.AuthMiddleware)
-	pr.GET("/api/v1/project/{projectId}/status", handler.AuthSignUpHandler, middleware.AuthMiddleware)
-	pr.GET("/api/v1/project/{projectId}/delete", handler.AuthSignUpHandler, middleware.AuthMiddleware)
+	pr.GET("/api/v1/project/{projectId}", handler.GetProjectInfoHandler, middleware.AuthMiddleware)
+	// pr.GET("/api/v1/project/{projectId}/status", handler.AuthSignUpHandler, middleware.AuthMiddleware)
+	pr.DELETE("/api/v1/project/{projectId}/delete", handler.DeleteProjectHandler, middleware.AuthMiddleware, middleware.WithRoleMiddlware(auth.OWNER))
 
 	// TODO: Issues associated with a project
 	pr.GET("/api/v1/project/{projectId}/issue", handler.AuthSignUpHandler, middleware.AuthMiddleware)

@@ -26,3 +26,41 @@ func (ppor *PostgresProjectOwnerRepo) Create(ctx context.Context, profileId, pro
 
 	return nil
 }
+
+/*
+-- get if profile is manager
+SELECT EXISTS (
+
+	SELECT 1
+	FROM project_manager
+	WHERE profile_id = 'YOUR_PROFILE_ID'
+	  AND project_id = 'YOUR_PROJECT_ID'
+
+);
+
+-- get if profile is developer
+SELECT EXISTS (
+
+	SELECT 1
+	FROM project_dev
+	WHERE profile_id = 'YOUR_PROFILE_ID'
+	  AND project_id = 'YOUR_PROJECT_ID'
+
+);
+*/
+
+func (ppor *PostgresProjectOwnerRepo) IsProjectOwner(ctx context.Context, profileId, projectId string) (bool, error) {
+	sqlQuery := `
+	SELECT EXISTS (
+		SELECT 1
+		FROM project_owner
+		WHERE owner_id = $1
+			AND project_id = $2
+	);
+	`
+	var answer bool
+	if err := ppor.DB.QueryRowContext(ctx, sqlQuery, profileId, projectId).Scan(&answer); err != nil {
+		return false, err
+	}
+	return answer, nil
+}

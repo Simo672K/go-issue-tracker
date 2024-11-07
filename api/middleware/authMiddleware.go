@@ -8,7 +8,7 @@ import (
 	"github.com/Simo672K/issue-tracker/utils"
 )
 
-func AuthMiddleware(ctx context.Context, handler http.Handler) http.Handler {
+func AuthMiddleware(ctx *context.Context, handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-type", "application/json")
 		cookie, err := r.Cookie("jwt_tokens")
@@ -45,8 +45,9 @@ func AuthMiddleware(ctx context.Context, handler http.Handler) http.Handler {
 		// 	)
 		// 	return
 		// }
-		ctx := context.WithValue(r.Context(), "profileId", (*accessTokenPayload)["sub"])
-		r = r.WithContext(ctx)
+		ctxWithVal := context.WithValue(*ctx, "profileId", (*accessTokenPayload)["sub"])
+		r = r.WithContext(ctxWithVal)
+		*ctx = r.Context()
 
 		if isAccessTokenValid {
 			handler.ServeHTTP(w, r)

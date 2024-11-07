@@ -5,18 +5,18 @@ import (
 	"net/http"
 )
 
-type Middleware func(context.Context, http.Handler) http.Handler
+type Middleware func(*context.Context, http.Handler) http.Handler
 type Controller func(http.ResponseWriter, *http.Request)
 
 type Router struct {
-	Ctx context.Context
+	Ctx *context.Context
 	Mux *http.ServeMux
 }
 
 // TODO: making router function that initialize a router based on a given mux
 func NewRouter(ctx context.Context, mux *http.ServeMux) *Router {
 	return &Router{
-		Ctx: ctx,
+		Ctx: &ctx,
 		Mux: mux,
 	}
 }
@@ -27,6 +27,8 @@ func (r *Router) Handle(method, path string, controller Controller, middlewares 
 	var pipedHandler http.Handler
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		req = req.WithContext(*r.Ctx)
+
 		if req.Method != method {
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 			return
@@ -59,13 +61,25 @@ func (r *Router) DELETE(path string, controller Controller, middlewares ...Middl
 }
 
 // * this function applys middlewares recursively, and the middlewares order maters
-func applyMiddlewaresPipe(ctx context.Context, handler http.Handler, middlewares ...Middleware) http.Handler {
-	if len(middlewares) == 1 {
-		return middlewares[0](ctx, handler)
+// func applyMiddlewaresPipe(ctx context.Context, handler http.Handler, middlewares ...Middleware) http.Handler {
+// 	if len(middlewares) == 1 {
+// 		return middlewares[0](ctx, handler)
+// 	}
+// 	// extracts the current middlware
+// 	currMiddlwr := middlewares[len(middlewares)-1]
+// 	// separates other middlware for piping
+// 	mdlwrs := middlewares[:len(middlewares)-1]
+// 	return currMiddlwr(ctx, applyMiddlewaresPipe(ctx, handler, mdlwrs...))
+// }
+
+func applyMiddlewaresPipe(ctx *context.Context, handler http.Handler, middlewares ...Middleware) http.Handler {
+	finalHandler := handler
+
+	// Apply each middleware in reverse order
+	for i := len(middlewares) - 1; i >= 0; i-- {
+		// Wrap the current final handler with the current middleware
+		finalHandler = middlewares[i](ctx, finalHandler)
 	}
-	// extracts the current middlware
-	currMiddlwr := middlewares[len(middlewares)-1]
-	// separates other middlware for piping
-	mdlwrs := middlewares[:len(middlewares)-1]
-	return currMiddlwr(ctx, applyMiddlewaresPipe(ctx, handler, mdlwrs...))
+
+	return finalHandler
 }
